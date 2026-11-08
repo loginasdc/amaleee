@@ -1,0 +1,46 @@
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+# Load dataset
+data = pd.read_csv("income.csv")
+data = data.dropna()
+
+# Convert categorical columns into numbers
+for col in data.select_dtypes(include="object").columns:
+    data[col] = LabelEncoder().fit_transform(data[col])
+
+# Split features and target
+X = data.drop("income", axis=1)
+y = data["income"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Feature scaling for Logistic Regression
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Logistic Regression
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train_scaled, y_train)
+pred1 = lr.predict(X_test_scaled)
+
+# Decision Tree
+dt = DecisionTreeClassifier(max_depth=5, random_state=42)
+dt.fit(X_train, y_train)
+pred2 = dt.predict(X_test)
+
+# Compare models
+for name, pred in [("Logistic Regression", pred1), ("Decision Tree", pred2)]:
+    print("\n", name)
+    print("Accuracy:", accuracy_score(y_test, pred))
+    print("Precision:", precision_score(y_test, pred, zero_division=0))
+    print("Recall:", recall_score(y_test, pred, zero_division=0))
+    print("F1 Score:", f1_score(y_test, pred, zero_division=0))
